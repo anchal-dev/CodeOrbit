@@ -1,0 +1,21 @@
+const validator = require('validator');
+
+const validate = (data) =>{
+
+const mandatoryField = ['firstName', 'emailId', 'password'];
+
+
+
+const isAllowed = mandatoryField.every((k)=> Object.keys(data).includes(k));
+
+if(!isAllowed)
+     throw new Error("Missing mandatory field");
+
+if(!validator.isEmail(data.emailId))
+    throw new Error("Invalid email id");
+
+if(!validator.isStrongPassword(data.password))
+    throw new Error("WeakPassword");
+
+}
+module.exports = validate;
