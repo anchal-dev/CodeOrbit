@@ -88,19 +88,3 @@ const problemSchema = new Schema({
 const Problem = mongoose.model('Problem', problemSchema);
 module.exports = Problem;
 
-
-
-const referenceSolution = [
-    {
-        language: "C++",
-        completeCode: "C++ Code"
-    },
-    {
-        language: "java",
-        completeCode: "java Code"
-    },
-    {   
-        language: "javascript",
-        completeCode: "javascript Code"
-    }
-]
