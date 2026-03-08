@@ -1,18 +1,26 @@
-const { solidityPacked } = require('ethers');
 const express = require('express');
 const adminMiddleware = require('../middleware/adminMiddleware');
+const userMiddleware = require('../middleware/userMiddleware');
 
 const problemRouter = express.Router();
-const { createProblem , updateProblem, deleteProblem, getProblemById,getAllProblem,solvedAllProblembyUser} = require('../controllers/userProblem');
-const useMiddleware = require('../middleware/userMiddleware');
 
-problemRouter.post("/create",adminMiddleware ,createProblem);
+const {
+  createProblem,
+  updateProblem,
+  deleteProblem,
+  getProblemById,
+  getAllProblem,
+  solvedAllProblembyUser,
+  submittedProblem
+} = require('../controllers/userProblem');
+
+problemRouter.post("/create", adminMiddleware, createProblem);
 problemRouter.put("/update/:id", adminMiddleware, updateProblem);
-problemRouter.delete("/delete/:id",adminMiddleware,deleteProblem);
+problemRouter.delete("/delete/:id", adminMiddleware, deleteProblem);
 
-problemRouter.get("/problemById/:id", useMiddleware, getProblemById);
-problemRouter.get("/getAllProblem",useMiddleware,   getAllProblem); 
-problemRouter.get("/problemSolvedByUser", useMiddleware, solvedAllProblembyUser);
-
+problemRouter.get("/problemById/:id", userMiddleware, getProblemById);
+problemRouter.get("/getAllProblem", userMiddleware, getAllProblem);
+problemRouter.get("/problemSolvedByUser", userMiddleware, solvedAllProblembyUser);
+problemRouter.get("/submittedProblem/:pid", userMiddleware, submittedProblem);
 
 module.exports = problemRouter;

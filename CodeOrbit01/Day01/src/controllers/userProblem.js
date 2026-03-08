@@ -224,4 +224,32 @@ const solvedAllProblembyUser = async (req, res) => {
 
 };
 
-module.exports = {  createProblem, updateProblem, deleteProblem , getProblemById,getAllProblem,solvedAllProblembyUser};
+const submittedProblem = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const problemId = req.params.pid;
+
+    const ans = await Submission.findOne({  userId, problemId });
+
+    if(ans.length === 0)
+      res.status(200).send({ message: "No submission found for this problem" });
+
+    res.status(200).send(ans);
+}
+  catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+//module.exports = {  createProblem, updateProblem, deleteProblem , getProblemById,getAllProblem,solvedAllProblembyUser};
+
+
+module.exports = {  
+  createProblem,
+  updateProblem,
+  deleteProblem,
+  getProblemById,
+  getAllProblem,
+  solvedAllProblembyUser,
+  submittedProblem
+};

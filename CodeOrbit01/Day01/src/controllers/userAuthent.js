@@ -3,6 +3,7 @@ const validate = require('../utils/validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const redisClient = require('../config/redis');
+const Submission = require('../models/submission');
 //const adminMiddleware = require('../middleware/adminMiddleware');
 
 
@@ -86,5 +87,23 @@ const adminRegister = async (req, res) => {
 
 }
 
+const deleteProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        await User.findByIdAndDelete(userId);
 
-module.exports = { register, login, logout, adminRegister };
+        await Submission.deleteMany({userId});
+
+        res.status(200).send("User profile deleted successfully");
+
+
+    }
+
+    catch (err) {
+        res.status(500).send("Internal Server Error");
+    }
+
+}
+
+
+module.exports = { register, login, logout, adminRegister, deleteProfile };
