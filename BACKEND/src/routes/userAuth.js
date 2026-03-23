@@ -9,7 +9,7 @@ const adminMiddleware = require('../middleware/adminMiddleware');
 
 authRouter.post('/register', register);
 authRouter.post('/login', login);
-authRouter.post('/logout', logout, UserMiddleware,logout);
+authRouter.post('/logout', UserMiddleware,logout);
 authRouter.post('/admin/register',adminMiddleware, adminRegister);
 authRouter.delete('/profile',UserMiddleware,deleteProfile);
 authRouter.get('/check', UserMiddleware, (req, res) => {

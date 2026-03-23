@@ -9,13 +9,20 @@ const Submission = require('../models/submission');
 
 const register = async (req, res) => {
     try {
-        validate(req.body);
+    //    validate(req.body);
 
         const { firstName, emailId, password } = req.body;
 
-        req.body.password = await bcrypt.hash(password, 10);
-       
-        const user = await User.create(req.body);
+const hashedPassword = await bcrypt.hash(password, 10);
+
+const user = await User.create({
+    firstName,
+    emailId,   // ✅ FIXED
+    password: hashedPassword
+});
+////////////////////////////////////////////////
+console.log(req.body);
+
 
         const token = jwt.sign( 
             { _id: user._id, emailId:emailId,role:user.role },
@@ -23,12 +30,17 @@ const register = async (req, res) => {
             { expiresIn: 60 * 60 }
         );
           const reply = {
-            firstName: user.firstName,
-            emailId: user.emailId,
-            _id: user._id
-        }
+    firstName: user.firstName,
+    emailId: user.emailId,
+    _id: user._id
+}
 
-        res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
+       res.cookie('token', token, {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: false, // important for localhost
+  maxAge: 60 * 60 * 1000
+});
         res.status(201).json({
             user :reply,
             message: "User registered successfully"
@@ -68,7 +80,12 @@ const login = async (req, res) => {
             { expiresIn: 60 * 60 }
         );
 
-        res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
+       res.cookie('token', token, {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: false, // important for localhost
+  maxAge: 60 * 60 * 1000
+});
         res.status(200).json({
             user :reply,
             message: "User logged in successfully"
