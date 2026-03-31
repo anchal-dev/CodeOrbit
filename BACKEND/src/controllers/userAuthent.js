@@ -47,8 +47,9 @@ console.log(req.body);
         });
     }
     catch (err) {
-        res.status(400).send("Error: " + err.message);
-    }
+    console.log("🔥 ERROR:", err.message);  // 👈 ADD THIS
+    res.status(400).send("Error: " + err.message);
+}
 };
 
 const login = async (req, res) => {
@@ -123,7 +124,7 @@ const adminRegister = async (req, res) => {
 
 const deleteProfile = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const usearId = req.user._id;
         await User.findByIdAndDelete(userId);
 
         await Submission.deleteMany({userId});

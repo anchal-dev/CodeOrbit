@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+ const jwt = require('jsonwebtoken');
+ const User = require('../models/user');
 const redisClient = require('../config/redis'); // adjust path if needed
 
 const useMiddleware = async (req, res, next) => {

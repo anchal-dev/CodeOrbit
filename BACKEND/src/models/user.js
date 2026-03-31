@@ -35,14 +35,10 @@ const userSchema = new Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-   problemSolved: {
-        type: [{
-          type:  Schema.Types.ObjectId,
-        ref: 'Problem'
-        }],
-        unique: true
-
-    
+  problemSolved: {
+  type: [mongoose.Schema.Types.ObjectId],
+  ref: "Problem",
+  default: []
 },
     password: {
 

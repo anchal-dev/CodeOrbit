@@ -201,9 +201,7 @@ const getAllProblem = async (req, res) => {
 };
 
 const solvedAllProblembyUser = async (req, res) => {
-
   try {
-
     const userId = req.user._id;
 
     const user = await User.findById(userId).populate({
@@ -211,17 +209,16 @@ const solvedAllProblembyUser = async (req, res) => {
       select: '_id title difficulty tags'
     });
 
-    const count = user.problemSolved.length;
+    // ✅ SAFE FIX
+    const solvedProblems = user?.problemSolved || [];
 
     res.status(200).send({
-      
-      problems: user.problemSolved
+      problems: solvedProblems
     });
 
   } catch (error) {
     res.status(500).send("Error: " + error.message);
   }
-
 };
 
 const submittedProblem = async (req, res) => {
@@ -231,8 +228,9 @@ const submittedProblem = async (req, res) => {
 
     const ans = await Submission.findOne({  userId, problemId });
 
-    if(ans.length === 0)
-      res.status(200).send({ message: "No submission found for this problem" });
+    if (!ans) {
+  return res.status(200).send({ message: "No submission found for this problem" });
+}
 
     res.status(200).send(ans);
 }
