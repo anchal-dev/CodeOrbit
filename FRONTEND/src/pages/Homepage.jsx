@@ -28,7 +28,7 @@ function Homepage() {
     const fetchSolvedProblems = async () => {
       try {
         const { data } = await axiosClient.get('/problem/problemSolvedByUser');
-setSolvedProblems(data.solvedProblems || []);
+      setSolvedProblems(data.solvedProblems || []);
       } catch (error) {
         console.error('Error fetching solved problems:', error);
       }
@@ -56,7 +56,7 @@ setSolvedProblems(data.solvedProblems || []);
       {/* Navigation Bar */}
       <nav className="navbar bg-base-100 shadow-lg px-4">
         <div className="flex-1">
-          <NavLink to="/" className="btn btn-ghost text-xl">CodeOrbit</NavLink>
+          <NavLink to="/" className="btn btn-ghost text-xl">LeetCode</NavLink>
         </div>
         <div className="flex-none gap-4">
           <div className="dropdown dropdown-end">
