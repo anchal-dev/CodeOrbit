@@ -170,7 +170,7 @@ const getProblemById = async (req, res) => {
             return res.status(400).send("Missing problem ID");
         }
 
-        const getProblem = await Problem.findById(id).select(' _id title description difficulty tags visibleTestCases  starterCode referenceSolution');
+        const getProblem = await Problem.findById(id).select(' _id title description difficulty tags visibleTestCases startCode referenceSolution')
 
         if (!getProblem) {
             return res.status(404).send("Problem is Missing");

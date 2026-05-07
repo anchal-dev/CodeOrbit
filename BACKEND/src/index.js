@@ -11,6 +11,8 @@ const cookieParser = require('cookie-parser');
 
 app.use(cookieParser()); // ✅ VERY IMPORTANT
 const cors = require("cors");
+const aiRouter = require('./routes/aiChatting');
+
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -22,7 +24,7 @@ app.use(express.json());
 app.use('/user',authRouter);
 app.use('/problem',problemRouter);
 app.use('/submission',submitRouter);
-
+app.use('/ai',aiRouter);
 
 const InitalizeConnection = async ()=>{
     try{
