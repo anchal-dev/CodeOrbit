@@ -67,7 +67,14 @@ const cors = require("cors");
 const aiRouter = require('./routes/aiChatting');
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow any localhost origin (handles 5173, 5174, 5175, etc.)
+    if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
