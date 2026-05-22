@@ -71,6 +71,14 @@ A stable and fully deployed version will be available soon.
 - Improved contest system  
 - Performance optimizations  
 - Advanced analytics dashboard  
+Coding Contests: Participate in timed contests, solve problems, and view leaderboards.
+Problem Playground: Practice problems with a built-in code editor supporting multiple languages.
+Discussion Forums: Engage in topic-based discussions, share insights, and ask questions.
+Real-Time Chat: Communicate instantly with other users in chat rooms and private messages.
+User Profiles: Track achievements, contest history, and personal progress.
+Announcements: Stay updated with platform news and contest notifications.
+Admin Dashboard: Manage contests, users, and platform content.
+Redeem System: Earn and redeem points for achievements and participation.
 
 ---
 

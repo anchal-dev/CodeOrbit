@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+/**
+ * BUG FIX: Original enum was ['javascript','cpp','java'] — 'python' and 'c'
+ * were missing, causing Mongoose validation errors that silently dropped
+ * submissions for those languages.
+ */
 const submissionSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -19,19 +24,19 @@ const submissionSchema = new Schema({
   language: {
     type: String,
     required: true,
-    enum: ['javascript', 'cpp', 'java']
+    enum: ['javascript', 'cpp', 'java', 'python', 'c']
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'wrong', 'error'],
+    enum: ['pending', 'accepted', 'wrong', 'error', 'tle', 'ce'],
     default: 'pending'
   },
   runtime: {
-    type: Number,  // milliseconds
+    type: Number,
     default: 0
   },
   memory: {
-    type: Number,  // kB
+    type: Number,
     default: 0
   },
   errorMessage: {
@@ -42,18 +47,15 @@ const submissionSchema = new Schema({
     type: Number,
     default: 0
   },
-  testCasesTotal: {  // Recommended addition
+  testCasesTotal: {
     type: Number,
     default: 0
   }
-}, { 
+}, {
   timestamps: true
 });
 
-
 submissionSchema.index({ userId: 1, problemId: 1 });
-
-
 
 const Submission = mongoose.model('Submission', submissionSchema);
 module.exports = Submission;

@@ -29,11 +29,16 @@ console.log(req.body);
             process.env.JWT_KEY,
             { expiresIn: 60 * 60 }
         );
-          const reply = {
-    firstName: user.firstName,
-    emailId: user.emailId,
-    _id: user._id
-}
+        const reply = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            emailId: user.emailId,
+            role: user.role,
+            avatar: user.avatar,
+            points: user.points,
+            orbitCoins: user.orbitCoins,
+            _id: user._id
+        }
 
        res.cookie('token', token, {
   httpOnly: true,
@@ -47,10 +52,17 @@ console.log(req.body);
         });
     }
     catch (err) {
-    console.log("🔥 ERROR:", err.message);  // 👈 ADD THIS
-    res.status(400).send("Error: " + err.message);
+    // Duplicate email (MongoDB unique index violation)
+    if (err.code === 11000 || (err.name === 'MongoServerError' && err.code === 11000)) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered. Please use a different email or log in.',
+      });
+    }
+    console.error('\uD83D\uDD25 REGISTER ERROR:', err.message);
+    return res.status(400).json({ success: false, message: err.message });
 }
-};
+}
 
 const login = async (req, res) => {
     try {
@@ -71,7 +83,12 @@ const login = async (req, res) => {
         
         const reply = {
             firstName: user.firstName,
+            lastName: user.lastName,
             emailId: user.emailId,
+            role: user.role,
+            avatar: user.avatar,
+            points: user.points,
+            orbitCoins: user.orbitCoins,
             _id: user._id
         }
 

@@ -1,183 +1,253 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, AlertTriangle, Clock, X, Code2, FileText, Cpu, MemoryStick } from 'lucide-react';
 import axiosClient from '../utils/axiosClient';
 
-const SubmissionHistory = ({ problemId }) => {
+/* ── helpers ── */
+const getStatusMeta = (status) => {
+  switch ((status ?? '').toLowerCase()) {
+    case 'accepted':
+      return { label: 'Accepted', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', Icon: CheckCircle };
+    case 'wrong':
+    case 'wrong answer':
+      return { label: 'Wrong Answer', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', Icon: XCircle };
+    case 'error':
+    case 'runtime error':
+      return { label: 'Runtime Error', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30', Icon: AlertTriangle };
+    case 'pending':
+      return { label: 'Pending', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30', Icon: Clock };
+    default:
+      return { label: status ?? 'Unknown', color: 'text-slate-400', bg: 'bg-slate-700/40 border-slate-600/30', Icon: FileText };
+  }
+};
+
+const formatMemory = (memory) => {
+  const n = Number(memory);
+  if (!memory || isNaN(n)) return '–';
+  if (n < 1024) return `${n} kB`;
+  return `${(n / 1024).toFixed(2)} MB`;
+};
+
+const formatRuntime = (runtime) => {
+  if (runtime == null || runtime === '') return '–';
+  return `${Number(runtime).toFixed(3)}s`;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '–';
+  try { return new Date(dateString).toLocaleString(); }
+  catch { return '–'; }
+};
+
+/* ── component ── */
+const SubmissionHistory = ({ problemId, refreshTrigger }) => {
   const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState(null);
+  const [selected, setSelected]       = useState(null);
 
   useEffect(() => {
+    if (!problemId) return;
     const fetchSubmissions = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const response = await axiosClient.get(`/problem/submittedProblem/${problemId}`);
-        setSubmissions(response.data);
-        setError(null);
+        const res = await axiosClient.get(`/problem/submittedProblem/${problemId}`);
+        // Safely handle: raw array OR { submissions: [...] } OR { data: [...] }
+        const raw = res?.data;
+        if (Array.isArray(raw)) {
+          setSubmissions(raw);
+        } else if (Array.isArray(raw?.submissions)) {
+          setSubmissions(raw.submissions);
+        } else if (Array.isArray(raw?.data)) {
+          setSubmissions(raw.data);
+        } else {
+          setSubmissions([]);
+        }
       } catch (err) {
-        setError('Failed to fetch submission history');
-        console.error(err);
+        console.error('SubmissionHistory fetch error:', err);
+        setError('Failed to load submission history. Please try again.');
+        setSubmissions([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchSubmissions();
-  }, [problemId]);
+  }, [problemId, refreshTrigger]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'accepted': return 'badge-success';
-      case 'wrong': return 'badge-error';
-      case 'error': return 'badge-warning';
-      case 'pending': return 'badge-info';
-      default: return 'badge-neutral';
-    }
-  };
-
-  const formatMemory = (memory) => {
-    if (memory < 1024) return `${memory} kB`;
-    return `${(memory / 1024).toFixed(2)} MB`;
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
-
+  /* ── loading state ── */
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <span className="loading loading-spinner loading-lg"></span>
+      <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-500">
+        <span className="loading loading-spinner loading-lg text-indigo-500" />
+        <p className="text-sm">Loading submissions…</p>
       </div>
     );
   }
 
+  /* ── error state ── */
   if (error) {
     return (
-      <div className="alert alert-error shadow-lg my-4">
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-4">
+        <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+          <XCircle size={22} className="text-red-400" />
+        </div>
+        <p className="text-sm font-semibold text-red-400">{error}</p>
+        <button
+          onClick={() => setLoading(true) /* re-trigger via state reset */}
+          className="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  /* ── empty state ── */
+  if (!Array.isArray(submissions) || submissions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-center">
+          <Code2 size={24} className="text-slate-500" />
+        </div>
         <div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{error}</span>
+          <p className="text-slate-300 font-semibold mb-1">No submissions yet</p>
+          <p className="text-slate-500 text-sm">Submit your solution to see your history here.</p>
         </div>
       </div>
     );
   }
 
+  /* ── submission list ── */
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6 text-center">Submission History</h2>
-      
-      {submissions.length === 0 ? (
-        <div className="alert alert-info shadow-lg">
-          <div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>No submissions found for this problem</span>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="table table-zebra w-full">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Language</th>
-                  <th>Status</th>
-                  <th>Runtime</th>
-                  <th>Memory</th>
-                  <th>Test Cases</th>
-                  <th>Submitted</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((sub, index) => (
-                  <tr key={sub._id}>
-                    <td>{index + 1}</td>
-                    <td className="font-mono">{sub.language}</td>
-                    <td>
-                      <span className={`badge ${getStatusColor(sub.status)}`}>
-                        {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                      </span>
-                    </td>
-                    
-                    <td className="font-mono">{sub.runtime}sec</td>
-                    <td className="font-mono">{formatMemory(sub.memory)}</td>
-                    <td className="font-mono">{sub.testCasesPassed}/{sub.testCasesTotal}</td>
-                    <td>{formatDate(sub.createdAt)}</td>
-                    <td>
-                      <button 
-                        className="btn btn-s btn-outline"
-                        onClick={() => setSelectedSubmission(sub)}
-                      >
-                        Code
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    <>
+      <div className="space-y-2.5">
+        {submissions.map((sub, index) => {
+          const meta = getStatusMeta(sub?.status);
+          const StatusIcon = meta.Icon;
+          return (
+            <motion.div
+              key={sub?._id ?? index}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, delay: index * 0.04 }}
+              className="group flex flex-wrap md:flex-nowrap items-center gap-3 bg-[#1e293b]/60 border border-slate-700/50 rounded-xl px-4 py-3 hover:border-indigo-500/40 hover:bg-[#1e293b]/80 transition-all cursor-pointer"
+              onClick={() => setSelected(sub)}
+            >
+              {/* Index */}
+              <span className="text-xs font-mono text-slate-500 w-6 shrink-0">
+                #{index + 1}
+              </span>
 
-          <p className="mt-4 text-sm text-gray-500">
-            Showing {submissions.length} submissions
-          </p>
-        </>
-      )}
+              {/* Status badge */}
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${meta.bg} ${meta.color} shrink-0`}>
+                <StatusIcon size={11} />
+                {meta.label}
+              </span>
 
-      {/* Code View Modal */}
-      {selectedSubmission && (
-        <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-5xl">
-            <h3 className="font-bold text-lg mb-4">
-              Submission Details: {selectedSubmission.language}
-            </h3>
-            
-            <div className="mb-4">
-              <div className="flex flex-wrap gap-2 mb-2">
-                <span className={`badge ${getStatusColor(selectedSubmission.status)}`}>
-                  {selectedSubmission.status}
+              {/* Language */}
+              <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded shrink-0">
+                {sub?.language ?? '–'}
+              </span>
+
+              {/* Stats */}
+              <div className="flex items-center gap-3 ml-auto text-xs text-slate-500 flex-wrap justify-end">
+                <span className="flex items-center gap-1">
+                  <Clock size={11} /> {formatRuntime(sub?.runtime)}
                 </span>
-                <span className="badge badge-outline">
-                  Runtime: {selectedSubmission.runtime}s
+                <span className="flex items-center gap-1">
+                  <Cpu size={11} /> {formatMemory(sub?.memory)}
                 </span>
-                <span className="badge badge-outline">
-                  Memory: {formatMemory(selectedSubmission.memory)}
-                </span>
-                <span className="badge badge-outline">
-                  Passed: {selectedSubmission.testCasesPassed}/{selectedSubmission.testCasesTotal}
-                </span>
+                {(sub?.testCasesPassed != null && sub?.testCasesTotal != null) && (
+                  <span className="flex items-center gap-1">
+                    <CheckCircle size={11} />
+                    {sub.testCasesPassed}/{sub.testCasesTotal} cases
+                  </span>
+                )}
+                <span className="hidden sm:block">{formatDate(sub?.createdAt)}</span>
               </div>
-              
-              {selectedSubmission.errorMessage && (
-                <div className="alert alert-error mt-2">
-                  <div>
-                    <span>{selectedSubmission.errorMessage}</span>
-                  </div>
+
+              {/* View code button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelected(sub); }}
+                className="shrink-0 text-[11px] font-bold px-3 py-1 rounded-lg border border-slate-700 text-slate-400 hover:border-indigo-500/40 hover:text-indigo-400 transition-colors"
+              >
+                View Code
+              </button>
+            </motion.div>
+          );
+        })}
+
+        <p className="text-xs text-slate-600 text-right pt-1">
+          {submissions.length} submission{submissions.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {/* ── Code Detail Modal ── */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            onClick={() => setSelected(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="relative bg-[#0f172a] border border-slate-700/60 rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-white">Submission Details</h3>
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${getStatusMeta(selected?.status).bg} ${getStatusMeta(selected?.status).color}`}>
+                    {getStatusMeta(selected?.status).label}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-300 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">
+                    {selected?.language ?? '–'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-800"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Stats row */}
+              <div className="flex flex-wrap gap-3 px-6 py-3 border-b border-slate-700/40 text-xs text-slate-400">
+                <span className="flex items-center gap-1.5"><Clock size={12} /> Runtime: {formatRuntime(selected?.runtime)}</span>
+                <span className="flex items-center gap-1.5"><Cpu size={12} /> Memory: {formatMemory(selected?.memory)}</span>
+                {(selected?.testCasesPassed != null && selected?.testCasesTotal != null) && (
+                  <span className="flex items-center gap-1.5"><CheckCircle size={12} /> Cases: {selected.testCasesPassed}/{selected.testCasesTotal}</span>
+                )}
+                <span className="ml-auto">{formatDate(selected?.createdAt)}</span>
+              </div>
+
+              {/* Error message if any */}
+              {selected?.errorMessage && (
+                <div className="mx-6 mt-3 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-xs text-red-300 font-mono">
+                  {selected.errorMessage}
                 </div>
               )}
-            </div>
-            
-            <pre className="p-4 bg-gray-900 text-gray-100 rounded overflow-x-auto">
-              <code>{selectedSubmission.code}</code>
-            </pre>
-            
-            <div className="modal-action">
-              <button 
-                className="btn"
-                onClick={() => setSelectedSubmission(null)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+
+              {/* Code block */}
+              <div className="overflow-y-auto max-h-[50vh] m-4 rounded-xl border border-slate-700/50">
+                <pre className="p-4 bg-[#020817] text-slate-300 text-xs font-mono leading-relaxed whitespace-pre-wrap break-words">
+                  <code>{selected?.code ?? '// No code available'}</code>
+                </pre>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

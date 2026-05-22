@@ -168,7 +168,7 @@ const getProblemById = async(req,res)=>{
     if(!id)
       return res.status(400).send("ID is Missing");
 
-    const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases startCode referenceSolution ');
+    const getProblem = await Problem.findById(id).select('_id title description difficulty tags visibleTestCases starterCode referenceSolution editorial videoId companies acceptanceRate');
    
     // video ka jo bhi url wagera le aao
 
@@ -201,7 +201,7 @@ const getAllProblem = async(req,res)=>{
 
   try{
      
-    const getProblem = await Problem.find({}).select('_id title difficulty tags');
+    const getProblem = await Problem.find({}).select('_id title difficulty tags companies acceptanceRate');
 
    if(getProblem.length==0)
     return res.status(404).send("Problem is Missing");

@@ -17,10 +17,25 @@ const problemSchema = new Schema({
     },
     tags: {
         type: [String],
-        enum: ['arrays', 'strings', 'linked-lists', 'trees', 'graphs', 'dynamic-programming', 'greedy', 'backtracking'],
-        required: true
+        required: true,
+        default: []
     },
-    
+    companies: {
+        type: [String],
+        default: []
+    },
+    acceptanceRate: {
+        type: Number,
+        default: 100.0
+    },
+    editorial: {
+        type: String,
+        default: ""
+    },
+    videoId: {
+        type: String,
+        default: ""
+    },
     visibleTestCases: [
         {   
             input: {
@@ -33,22 +48,25 @@ const problemSchema = new Schema({
             },
             explanation: {
                 type: String,
-                required: true
+                default: ''
          }
         }
     ],
-     hiddenTestCases: [
+    hiddenTestCases: [
         {   
             input: {
-                type: String,
-                required: true
+                type: String
             },
             output: {
-                type: String,
-                required: true
+                type: String
             }
         }
     ],
+
+    constraints: {
+        type: [String],
+        default: []
+    },
 
     starterCode: [
         {

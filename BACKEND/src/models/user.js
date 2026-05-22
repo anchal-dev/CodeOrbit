@@ -39,9 +39,51 @@ const userSchema = new Schema({
   type: [mongoose.Schema.Types.ObjectId],
   ref: "Problem",
   default: []
-},
-    password: {
-
+  },
+  points: {
+      type: Number,
+      default: 0
+  },
+  redeemHistory: [{
+      item: String,
+      cost: Number,
+      date: { type: Date, default: Date.now }
+  }],
+  avatar: {
+      type: String,
+      default: ""
+  },
+  github: {
+      type: String,
+      default: ""
+  },
+  linkedin: {
+      type: String,
+      default: ""
+  },
+  bio: {
+      type: String,
+      default: "",
+      maxLength: 500
+  },
+  contestsParticipated: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Contest"
+  }],
+  orbitCoins: {
+      type: Number,
+      default: 0
+  },
+  reputation: {
+      type: Number,
+      default: 0
+  },
+  dailySolvedProblems: [{
+      problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Problem' },
+      date:      { type: String },   // 'YYYY-MM-DD' UTC
+      solvedAt:  { type: Date, default: Date.now }
+  }],
+  password: {
         type: String,
         required: true,
     }
