@@ -9,7 +9,7 @@ import { MessageCircle, Send, X, Minus } from 'lucide-react';
 let socket = null;
 const getSocket = () => {
   if (!socket) {
-    socket = io('http://localhost:3000', {
+    socket = io('https://codeorbit-backend-uwtg.onrender.com', {
       withCredentials: true,
       autoConnect: false,
       reconnectionAttempts: 5,

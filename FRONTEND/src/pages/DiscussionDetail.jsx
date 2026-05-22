@@ -28,7 +28,7 @@ const DiscussionDetail = () => {
   useEffect(() => {
     fetchPostDetails();
 
-    const socket = io('http://localhost:3000', { withCredentials: true });
+    const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
 
     socket.on('connect', () => {
       socket.emit('join_room', `post_${id}`);

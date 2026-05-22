@@ -31,7 +31,7 @@ const NotificationDropdown = () => {
     if (!user) return;
     fetchNotifications();
 
-    const socket = io('http://localhost:3000', { withCredentials: true });
+    const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
     socket.on('connect', () => socket.emit('join_room', String(user._id)));
     socket.on('notification', (n) => setNotifications(prev => [n, ...prev]));
 
