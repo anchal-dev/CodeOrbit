@@ -68,8 +68,8 @@ const aiRouter = require('./routes/aiChatting');
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow any localhost origin (handles 5173, 5174, 5175, etc.)
-    if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
+    // Allow localhost (development) and any vercel.app domains (production)
+    if (!origin || /^http:\/\/localhost:\d+$/.test(origin) || /\.vercel\.app$/.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
