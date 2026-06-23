@@ -11,6 +11,7 @@ import { io } from 'socket.io-client';
 import axiosClient from '../utils/axiosClient';
 import MarkdownViewer from '../components/MarkdownViewer';
 import CommentThread from '../components/CommentThread';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 
 const DiscussionDetail = () => {
   const { id } = useParams();
@@ -23,9 +24,13 @@ const DiscussionDetail = () => {
   const [replyContent, setReplyContent] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   /* ─── Socket.io ────────────────────────────────────── */
   useEffect(() => {
+    setPost(null);
+    setComments([]);
+    setLoading(true);
     fetchPostDetails();
 
     const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
@@ -105,6 +110,11 @@ const DiscussionDetail = () => {
   /* ─── Render ───────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-300 pt-32 md:pt-36 pb-16">
+      <LoginRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action="reply and vote in discussions"
+      />
       <div className="max-w-5xl mx-auto px-4 md:px-8 space-y-6">
 
         {/* Back button */}
@@ -220,7 +230,10 @@ const DiscussionDetail = () => {
               {/* Reply CTA */}
               {!post.isLocked && (
                 <button
-                  onClick={() => setIsReplying(!isReplying)}
+                  onClick={() => {
+                    if (!user) { setShowAuthModal(true); return; }
+                    setIsReplying(!isReplying);
+                  }}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600/20 border border-indigo-500/30 hover:bg-indigo-600/30 text-indigo-400 text-sm font-bold rounded-xl transition-all duration-200"
                 >
                   <MessageSquare size={16} />
@@ -297,6 +310,7 @@ const DiscussionDetail = () => {
                   onReply={handleReplyToComment}
                   onAccept={handleAcceptAnswer}
                   onVote={handleVote}
+                  onLoginRequired={() => setShowAuthModal(true)}
                   depth={0}
                 />
               ))}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useNavigate, useSearchParams } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosClient from '../utils/axiosClient';
 import { CheckCircle, Circle, Trophy, Star, Search, Filter, CheckCheck } from 'lucide-react';
@@ -7,10 +7,13 @@ import { CheckCircle, Circle, Trophy, Star, Search, Filter, CheckCheck } from 'l
 function ProblemsPage() {
   const { user } = useSelector((state) => state.auth);
   const navigate  = useNavigate();
+  const [searchParams] = useSearchParams();
+  const topicParam = searchParams.get('topic');
+
   const [problems, setProblems] = useState([]);
   const [solvedProblems, setSolvedProblems] = useState([]);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ difficulty: 'all', tag: 'all' });
+  const [filters, setFilters] = useState({ difficulty: 'all', tag: topicParam || 'all' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -50,8 +53,17 @@ function ProblemsPage() {
 
     fetchProblems();
     fetchPOTD();
-    if (user) fetchSolvedProblems();
-  }, [user]);
+    if (user?._id) fetchSolvedProblems();
+  }, [user?._id]);
+
+  // Sync URL topic param to local filter state
+  useEffect(() => {
+    if (topicParam) {
+      setFilters(prev => ({ ...prev, tag: topicParam }));
+    } else {
+      setFilters(prev => ({ ...prev, tag: 'all' }));
+    }
+  }, [topicParam]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -180,6 +192,28 @@ function ProblemsPage() {
           </div>
         </div>
 
+        {/* Dynamic Topic Header */}
+        {topicParam && (
+          <div className="bg-indigo-600/20 border border-indigo-500/30 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg shadow-indigo-900/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center border border-indigo-500/50">
+                <Filter className="text-indigo-400" size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white">{topicParam} Problems</h2>
+                <p className="text-indigo-300 font-medium text-sm">
+                  Showing {filteredProblems.length} problem{filteredProblems.length !== 1 && 's'} in this category
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => { navigate('/problems'); setFilters({...filters, tag: 'all'}); }}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm font-bold transition-colors"
+            >
+              Clear Topic Filter
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 items-center bg-[#1e293b]/60 p-3 rounded-xl border border-slate-700/50 backdrop-blur-md">
@@ -209,19 +243,20 @@ function ProblemsPage() {
             <select 
               className="bg-[#0f172a] border border-slate-700 text-sm font-medium text-slate-300 rounded-lg px-4 py-2.5 focus:outline-none focus:border-indigo-500 cursor-pointer w-full md:w-48"
               value={filters.tag}
-              onChange={(e) => setFilters({...filters, tag: e.target.value})}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'all') navigate('/problems');
+                else navigate(`/problems?topic=${encodeURIComponent(val)}`);
+              }}
             >
               <option value="all">All Tags</option>
-              <option value="Array">Array</option>
-              <option value="Dynamic Programming">Dynamic Programming</option>
-              <option value="Linked List">Linked List</option>
-              <option value="Greedy">Greedy</option>
-              <option value="Sorting">Sorting</option>
-              <option value="Math">Math</option>
+              {Array.from(new Set(problems.flatMap(p => p.tags || []))).sort().map(tag => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
             </select>
 
             <button 
-              onClick={() => { setSearch(''); setFilters({difficulty: 'all', tag: 'all'}); }}
+              onClick={() => { setSearch(''); navigate('/problems'); setFilters({difficulty: 'all', tag: 'all'}); }}
               className="bg-[#0f172a] hover:bg-slate-800 border border-slate-700 text-sm font-medium text-slate-300 rounded-lg px-4 py-2.5 transition-colors flex items-center gap-2 whitespace-nowrap"
             >
               <Filter size={16} /> Clear Filters

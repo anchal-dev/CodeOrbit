@@ -1,40 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../authSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Code2, Trophy, MessageSquare, Menu, User, 
-  LogOut, Settings, Gamepad2, Briefcase, MessagesSquare, X, ChevronRight, Bell
+  LogOut, Settings, Gamepad2, Briefcase, MessagesSquare, X, ChevronRight, Zap, Gift
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleLogout = () => {
     dispatch(logoutUser());
+    navigate('/');
   };
 
-  const navLinks = [
-    { name: 'Problems', path: '/problems', icon: <Code2 size={16} /> },
-    { name: 'Discuss', path: '/forum', icon: <MessageSquare size={16} /> },
-    { name: 'Contests', path: '/contests', icon: <Trophy size={16} /> },
-    { name: 'Game', path: '/game', icon: <Gamepad2 size={16} /> },
+  // Public nav links visible to everyone
+  const publicLinks = [
+    { name: 'Problems',  path: '/problems',  icon: <Code2 size={16} /> },
+    { name: 'Discuss',   path: '/forum',     icon: <MessageSquare size={16} /> },
+    { name: 'Contests',  path: '/contests',  icon: <Trophy size={16} /> },
+    { name: 'Game',      path: '/game',      icon: <Gamepad2 size={16} /> },
     { name: 'Interview', path: '/interview', icon: <Briefcase size={16} /> },
-    { name: 'Chat', path: '/chat', icon: <MessagesSquare size={16} /> },
   ];
+
+  const navLinks = publicLinks;
 
   return (
     <>
@@ -44,14 +46,14 @@ const Navbar = () => {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
           scrolled 
-            ? 'bg-[#0f172a]/70 backdrop-blur-xl border-slate-800/50 shadow-2xl shadow-indigo-500/5' 
+            ? 'bg-[#0f172a]/80 backdrop-blur-xl border-slate-800/50 shadow-2xl shadow-indigo-500/5' 
             : 'bg-transparent border-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             
-            {/* Logo area */}
+            {/* Logo */}
             <div className="flex items-center gap-2">
               <button 
                 className="lg:hidden p-2 text-slate-300 hover:text-white"
@@ -70,7 +72,7 @@ const Navbar = () => {
               </NavLink>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Nav Links */}
             <div className="hidden lg:flex items-center space-x-1">
               {navLinks.map((link) => (
                 <NavLink 
@@ -103,41 +105,50 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* User Actions */}
-            <div className="flex items-center gap-4">
-              {user ? (
-                <div className="flex items-center gap-4">
-                   <div className="hidden md:flex items-center gap-2 bg-slate-800/50 border border-slate-700/50 px-3 py-1.5 rounded-full backdrop-blur-md">
-                     <span className="text-sm font-bold text-orange-400 flex items-center gap-1.5">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                        </span>
-                        🪙 {user.orbitCoins ?? user.points ?? 0} pts
-                     </span>
-                   </div>
-                   
+            {/* Right Side: Guest buttons OR User info */}
+            <div className="flex items-center gap-3">
+              {isAuthenticated && user ? (
+                /* ── Logged-In User Area ── */
+                <div className="flex items-center gap-3">
+                  {/* Points pill linked to Redeem Store */}
+                  <NavLink 
+                    to="/redeem" 
+                    className="hidden md:flex items-center gap-2 bg-slate-850/60 border border-slate-700/50 px-3 py-1.5 rounded-full backdrop-blur-md hover:border-yellow-500/40 hover:bg-slate-800 transition-all cursor-pointer group"
+                  >
+                    <span className="text-sm font-bold text-orange-400 flex items-center gap-1.5 group-hover:text-yellow-300">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                      </span>
+                      🪙 {user.orbitCoins ?? user.points ?? 0} pts
+                    </span>
+                  </NavLink>
+                  
                   <NotificationDropdown />
                   
+                  {/* Avatar + Dropdown */}
                   <div className="dropdown dropdown-end">
                     <label tabIndex={0} className="btn btn-ghost btn-circle avatar hover:bg-transparent">
                       <div className="w-10 h-10 rounded-full ring-2 ring-indigo-500/50 hover:ring-indigo-400 ring-offset-2 ring-offset-[#0f172a] transition-all transform hover:scale-110">
                         <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff&bold=true`} alt="avatar" />
                       </div>
                     </label>
-                    <ul tabIndex={0} className="mt-4 p-2 shadow-2xl menu menu-sm dropdown-content bg-[#1e293b]/95 backdrop-blur-xl rounded-2xl w-64 border border-slate-700 z-50 transform origin-top-right transition-all">
+                    <ul tabIndex={0} className="mt-4 p-2 shadow-2xl menu menu-sm dropdown-content bg-[#1e293b]/95 backdrop-blur-xl rounded-2xl w-64 border border-slate-700 z-50">
                       <div className="px-4 py-3 border-b border-slate-700/50 mb-2">
                         <p className="text-sm text-slate-400">Signed in as</p>
                         <p className="text-base font-bold text-white truncate">{user.firstName} {user.lastName}</p>
                         <p className="text-xs text-indigo-400 mt-1 font-mono">{user.email}</p>
                       </div>
-                      
                       <li>
                         <NavLink to="/profile" className="py-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition-colors">
                           <User size={16} className="text-indigo-400"/> Profile Overview
                         </NavLink>
                       </li>
-                      
+                      <li>
+                        <NavLink to="/redeem" className="py-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition-colors">
+                          <Gift size={16} className="text-amber-400"/> Redeem Store
+                        </NavLink>
+                      </li>
                       {user.role === 'admin' && (
                         <li>
                           <NavLink to="/admin" className="py-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition-colors">
@@ -145,11 +156,9 @@ const Navbar = () => {
                           </NavLink>
                         </li>
                       )}
-                      
-                      <div className="divider my-1 border-slate-700/50 h-px bg-slate-700/50 mx-2"></div>
-                      
+                      <div className="h-px bg-slate-700/50 mx-2 my-1" />
                       <li>
-                        <button onClick={handleLogout} className="py-2 hover:bg-red-500/10 rounded-xl text-red-400 hover:text-red-300 transition-colors">
+                        <button onClick={handleLogout} className="py-2 hover:bg-red-500/10 rounded-xl text-red-400 hover:text-red-300 transition-colors w-full text-left flex items-center gap-2">
                           <LogOut size={16} /> Sign out
                         </button>
                       </li>
@@ -157,14 +166,19 @@ const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <NavLink to="/login" className="hidden sm:block text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-2">
+                /* ── Guest Buttons ── */
+                <div className="flex items-center gap-2">
+                  <NavLink 
+                    to="/login" 
+                    className="hidden sm:block text-sm font-semibold text-slate-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
+                  >
                     Sign In
                   </NavLink>
                   <NavLink to="/signup" className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
-                    <button className="relative flex items-center gap-2 bg-[#0f172a] hover:bg-slate-900 border border-slate-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300">
-                      Start Learning <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-300" />
+                    <button className="relative flex items-center gap-1.5 bg-[#0f172a] hover:bg-slate-900 border border-slate-700 text-white px-5 py-2 rounded-full text-sm font-bold transition-all duration-200">
+                      <Zap size={15} className="text-indigo-400" />
+                      Get Started
                     </button>
                   </NavLink>
                 </div>
@@ -174,7 +188,7 @@ const Navbar = () => {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -207,6 +221,7 @@ const Navbar = () => {
                 </button>
               </div>
 
+              {/* Mobile Nav Links */}
               <div className="flex flex-col space-y-2 flex-1">
                 {navLinks.map((link) => (
                   <NavLink 
@@ -223,13 +238,37 @@ const Navbar = () => {
                 ))}
               </div>
 
-              {!user && (
+              {/* Mobile Guest or User Section at bottom */}
+              {isAuthenticated && user ? (
+                <div className="mt-auto pt-6 border-t border-slate-800 space-y-3">
+                  <div className="flex items-center gap-3 px-2">
+                    <img 
+                      src={user.avatar || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff&bold=true`} 
+                      alt="avatar" 
+                      className="w-10 h-10 rounded-full ring-2 ring-indigo-500/50"
+                    />
+                    <div>
+                      <p className="text-sm font-bold text-white">{user.firstName} {user.lastName}</p>
+                      <p className="text-xs text-indigo-400 font-mono">🪙 {user.orbitCoins ?? 0} pts</p>
+                    </div>
+                  </div>
+                  <NavLink to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">
+                    <User size={16} className="text-indigo-400" /> Profile
+                  </NavLink>
+                  <NavLink to="/redeem" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">
+                    <Gift size={16} className="text-amber-400" /> Redeem Store
+                  </NavLink>
+                  <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
+                    <LogOut size={16} /> Sign Out
+                  </button>
+                </div>
+              ) : (
                 <div className="mt-auto flex flex-col gap-3 pt-6 border-t border-slate-800">
-                  <NavLink to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline border-slate-700 text-slate-300">
+                  <NavLink to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-outline border-slate-700 text-slate-300 hover:text-white hover:border-slate-500">
                     Sign In
                   </NavLink>
-                  <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)} className="btn bg-indigo-600 border-none text-white hover:bg-indigo-500">
-                    Start Learning
+                  <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)} className="btn bg-indigo-600 border-none text-white hover:bg-indigo-500 gap-2">
+                    <Zap size={16} /> Get Started
                   </NavLink>
                 </div>
               )}

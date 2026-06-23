@@ -12,11 +12,11 @@ const profileRouter = require("./routes/profile");
 const redeemRouter  = require("./routes/redeem");
 const contestRouter = require("./routes/contest");
 const forumRouter   = require("./routes/forum");
-const chatRouter    = require("./routes/chat");
 const potdRouter    = require("./routes/potd");
+const gameRouter    = require('./routes/game');
+const interviewRouter = require('./routes/interview');
 const adminRouter   = require("./routes/admin");
 const cookieParser = require('cookie-parser');
-const Message = require('./models/message');
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -38,23 +38,6 @@ io.on('connection', (socket) => {
   socket.on('join_room', (data) => {
     socket.join(data);
     console.log(`User with ID: ${socket.id} joined room: ${data}`);
-  });
-
-  socket.on('send_message', async (data) => {
-    // Save message to DB
-    try {
-        const newMessage = new Message({
-            room: data.room,
-            sender: data.sender._id || data.sender,
-            content: data.content
-        });
-        await newMessage.save();
-        
-        // Broadcast to others in room
-        socket.to(data.room).emit('receive_message', data);
-    } catch (err) {
-        console.error('Error saving message:', err);
-    }
   });
 
   socket.on('disconnect', () => {
@@ -83,14 +66,18 @@ app.use('/user',authRouter);
 app.use('/problem',problemRouter);
 app.use('/submission',submitRouter);
 app.use('/ai',aiRouter);
+app.use('/api/ai',aiRouter);
 app.use('/profile', profileRouter);
 app.use('/redeem', redeemRouter);
 app.use('/contest', contestRouter);
 app.use('/api/contest', contestRouter);
 app.use('/api/contests', contestRouter);
 app.use('/forum', forumRouter);
-app.use('/chat',         chatRouter);
 app.use('/potd',         potdRouter);
+app.use('/game',         gameRouter);
+app.use('/api/game',     gameRouter);
+app.use('/interview',     interviewRouter);
+app.use('/api/interview', interviewRouter);
 app.use('/announcement', require('./routes/announcement'));
 app.use('/admin', adminRouter);
 app.use('/api/admin', adminRouter);

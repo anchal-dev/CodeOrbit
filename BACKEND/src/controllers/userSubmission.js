@@ -3,11 +3,7 @@ const Submission = require('../models/submission');
 const { getLanguageById, submitBatch, submitToken, normalizeOutput } = require('../utils/problemUtility');
 const { getOrCreatePOTD } = require('./potd');
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/**
- * Map Judge0 terminal status_id → short slug used in API responses.
- */
 const STATUS_SLUG = {
   3:  'accepted',
   4:  'wrong_answer',
@@ -21,11 +17,7 @@ const STATUS_SLUG = {
   12: 'runtime_error',
 };
 
-/**
- * Judge0 status_id → human-readable verdict (kept for display labels).
- * NOTE: Judge0 may return status as { id, description } object OR a flat
- *       status_id integer depending on the 'fields' param. We handle both.
- */
+
 const getStatusId = (tc) => {
   // Flat integer (batch endpoint)
   if (typeof tc.status_id === 'number') return tc.status_id;
@@ -140,7 +132,7 @@ const submitCode = async (req, res) => {
       const statusId = getStatusId(tc);
       const stdout   = safeOutput(tc.stdout);
       const stderr   = safeOutput(tc.stderr || tc.compile_output);
-
+ 
       console.log(`[submit] TC[${i}] status_id=${statusId} stdout="${stdout.slice(0,80)}" stderr="${stderr.slice(0,80)}"`);
 
       if (statusId === 3) {
@@ -300,14 +292,16 @@ const runCode = async (req, res) => {
         String(problem.visibleTestCases[i]?.output || '')
       );
 
-      // A testcase passes if Judge0 says Accepted AND our own
-      // normalised comparison agrees (defends against Judge0 WA
-      // when expected_output encoding is off).
+
+
+
+
+
+      
+      
       const outputMatch = actualNorm === expectedNorm;
 
-      // Determine per-case verdict:
-      //  - CE / TLE / RE take priority from Judge0 status
-      //  - Otherwise we trust our own comparison
+      
       let casePassed = false;
       let caseSlug   = STATUS_SLUG[statusId] || 'runtime_error';
 

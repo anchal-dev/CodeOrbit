@@ -55,7 +55,8 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     isAuthenticated: false,
-    loading: false,
+    loading: false,       // for login / register / logout spinners
+    authChecking: true,   // ONLY for the initial checkAuth — prevents full-page flash
     error: null
   },
   reducers: {
@@ -96,18 +97,19 @@ const authSlice = createSlice({
         state.user = null;
       })
   
-      // Check Auth Cases
+      // Check Auth Cases — uses authChecking, NOT loading, so pages don't flicker
       .addCase(checkAuth.pending, (state) => {
-        state.loading = true;
+        // Only block the UI on the very first check (authChecking starts true)
+        // Subsequent calls from pages keep authChecking false so no full-page spinner
         state.error = null;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        state.loading = false;
+        state.authChecking = false;
         state.isAuthenticated = !!action.payload;
         state.user = action.payload;
       })
       .addCase(checkAuth.rejected, (state, action) => {
-        state.loading = false;
+        state.authChecking = false;
         state.error = action.payload?.message || 'Something went wrong';
         state.isAuthenticated = false;
         state.user = null;
@@ -116,7 +118,6 @@ const authSlice = createSlice({
       // Logout User Cases
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;

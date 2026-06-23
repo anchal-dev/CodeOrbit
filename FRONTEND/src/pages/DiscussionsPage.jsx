@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import axiosClient from '../utils/axiosClient';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 
 const TAG_LIST = [
   'Array', 'Dynamic Programming', 'Graph', 'Tree', 'String',
@@ -30,11 +31,14 @@ const DiscussionsPage = () => {
   const [filter, setFilter]     = useState('newest');
   const [search, setSearch]     = useState('');
   const [activeTag, setActiveTag] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => { fetchPosts(); }, [filter, activeTag]);
 
   const fetchPosts = async () => {
-    setLoading(true);
+    if (posts.length === 0) {
+      setLoading(true);
+    }
     try {
       const params = new URLSearchParams();
       if (filter)    params.append('filter', filter);
@@ -53,6 +57,11 @@ const DiscussionsPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-300 pt-32 md:pt-36 pb-16">
+      <LoginRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action="create and participate in discussions"
+      />
       <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-6">
 
         {/* ── Page Header ── */}
@@ -73,7 +82,7 @@ const DiscussionsPage = () => {
           </div>
           <button
             onClick={() => {
-              if (!user) { alert('Please login to create a post'); return; }
+              if (!user) { setShowAuthModal(true); return; }
               navigate('/forum/new');
             }}
             className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 whitespace-nowrap"

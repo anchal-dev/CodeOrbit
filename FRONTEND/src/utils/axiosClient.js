@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "https://codeorbit-backend-uwtg.onrender.com",
+  baseURL: "http://localhost:3000",
   withCredentials: true,  // sends httpOnly cookies automatically
 });
 

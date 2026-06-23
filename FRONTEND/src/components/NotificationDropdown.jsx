@@ -27,16 +27,17 @@ const NotificationDropdown = () => {
   }, []);
 
   /* ── Socket + initial fetch ── */
+  const userId = user?._id;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     fetchNotifications();
 
     const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
-    socket.on('connect', () => socket.emit('join_room', String(user._id)));
+    socket.on('connect', () => socket.emit('join_room', String(userId)));
     socket.on('notification', (n) => setNotifications(prev => [n, ...prev]));
 
     return () => socket.close();
-  }, [user]);
+  }, [userId]);
 
   const fetchNotifications = async () => {
     try {

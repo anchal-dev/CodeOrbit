@@ -6,12 +6,13 @@ import Editor from '@monaco-editor/react';
 import axiosClient from "../utils/axiosClient"
 import SubmissionHistory from "../components/SubmissionHistory"
 import ProblemDiscussions from '../components/ProblemDiscussions';
-import ChatAi from '../components/ChatAi';
+import CodeOrbitAI from '../components/CodeOrbitAI';
 import { checkAuth } from '../authSlice';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 import { 
   ArrowLeft, ArrowDown, BookOpen, FileText, History, Code2, 
   Play, Send, RotateCcw, Maximize2, Copy, CheckSquare, Terminal,
-  CheckCircle, ChevronDown, MessageSquare
+  CheckCircle, ChevronDown, MessageSquare, Lock
 } from 'lucide-react';
 
 const langMap = {
@@ -32,6 +33,8 @@ const monacoLangMap = {
 
 const ProblemPage = () => {
   const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [submissionCounter, setSubmissionCounter] = useState(0);
   const [problem, setProblem] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('cpp');
@@ -48,11 +51,13 @@ const ProblemPage = () => {
   
   const editorRef = useRef(null);
   const leftPaneRef = useRef(null);
+  const copyTimeoutRef = useRef(null);
   let {problemId}  = useParams();
 
   useEffect(() => {
     const fetchProblem = async () => {
       setLoading(true);
+      setProblem(null);
       try {
         const response = await axiosClient.get(`/problem/problemById/${problemId}`);
         const initialCode = response.data.starterCode?.find(
@@ -79,6 +84,7 @@ const ProblemPage = () => {
 
   const handleEditorChange = (value) => setCode(value || '');
   const handleEditorDidMount = (editor) => { editorRef.current = editor; };
+
 
   const handleReset = () => {
     if (problem) {
@@ -152,8 +158,15 @@ const ProblemPage = () => {
   const handleCopyCode = (codeToCopy) => {
     navigator.clipboard.writeText(codeToCopy);
     setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 2000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     if (leftPaneRef.current) {
@@ -185,6 +198,13 @@ const ProblemPage = () => {
 
   return (
     <div className="h-screen pt-20 flex bg-[#131b2f] text-slate-300 font-sans overflow-hidden">
+      
+      {/* Login Required Modal */}
+      <LoginRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action="run and submit code"
+      />
       
       {/* Left Panel */}
       <div className="w-[45%] flex flex-col border-r border-slate-800/60 bg-[#151c2c]">
@@ -471,20 +491,48 @@ const ProblemPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button 
-              onClick={handleRun}
-              disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-600/50 text-xs font-bold text-emerald-400 transition-colors"
-            >
-              <Play size={14} fill="currentColor" /> Run
-            </button>
-            <button 
-              onClick={handleSubmitCode}
-              disabled={isSubmitting}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white transition-colors shadow-lg shadow-blue-500/20"
-            >
-              <Send size={14} /> Submit
-            </button>
+            {/* Run Button */}
+            <div className="relative group/run">
+              <button 
+                onClick={() => isAuthenticated ? handleRun() : setShowAuthModal(true)}
+                disabled={isSubmitting}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                  isAuthenticated
+                    ? 'bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-600/50 text-emerald-400'
+                    : 'bg-slate-700/40 border border-slate-600/40 text-slate-500 cursor-pointer'
+                }`}
+              >
+                {isAuthenticated ? <Play size={14} fill="currentColor" /> : <Lock size={14} />}
+                Run
+              </button>
+              {!isAuthenticated && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold rounded-lg whitespace-nowrap opacity-0 group-hover/run:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+                  🔒 Login required
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                </div>
+              )}
+            </div>
+            {/* Submit Button */}
+            <div className="relative group/submit">
+              <button 
+                onClick={() => isAuthenticated ? handleSubmitCode() : setShowAuthModal(true)}
+                disabled={isSubmitting}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                  isAuthenticated
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                    : 'bg-slate-700/40 border border-slate-600/40 text-slate-500 cursor-pointer'
+                }`}
+              >
+                {isAuthenticated ? <Send size={14} /> : <Lock size={14} />}
+                Submit
+              </button>
+              {!isAuthenticated && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold rounded-lg whitespace-nowrap opacity-0 group-hover/submit:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+                  🔒 Login required
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                </div>
+              )}
+            </div>
             <button 
               onClick={handleReset}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-bold text-red-400 transition-colors ml-2"
@@ -790,6 +838,13 @@ const ProblemPage = () => {
 
 
       </div>
+
+      {/* CodeOrbit AI — only available on problem page, receives live context */}
+      <CodeOrbitAI
+        problem={problem}
+        code={code}
+        language={selectedLanguage}
+      />
     </div>
   );
 };

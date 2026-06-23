@@ -34,12 +34,7 @@ const useMiddleware = async (req, res, next) => {
     }
 };
 
-/**
- * Optional auth middleware — attaches req.user if a valid token exists,
- * but does NOT block the request if no token is present.
- * Used for public routes that benefit from knowing who is logged in
- * (e.g., GET /potd to show solved status).
- */
+
 const optionalMiddleware = async (req, res, next) => {
     try {
         const { token } = req.cookies;

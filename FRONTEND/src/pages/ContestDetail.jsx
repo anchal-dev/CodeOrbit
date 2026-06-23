@@ -8,6 +8,7 @@ import {
   Sparkles, ChevronRight, CheckCircle, XCircle, ArrowLeft, History 
 } from 'lucide-react';
 import { checkAuth } from '../authSlice';
+import LoginRequiredModal from '../components/LoginRequiredModal';
 
 /* ── helper: point valuation based on difficulty ── */
 const getPoints = (diff) => {
@@ -92,6 +93,7 @@ const ContestDetail = () => {
   const [joining, setJoining] = useState(false);
   const [activeTab, setActiveTab] = useState('problems'); // problems, leaderboard, submissions, rules
   const [localJoined, setLocalJoined] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Load participation state from localStorage
   useEffect(() => {
@@ -101,9 +103,11 @@ const ContestDetail = () => {
     }
   }, [id]);
 
-  const fetchContestData = async () => {
+  const fetchContestData = async (showSpinner = false) => {
     try {
-      setLoading(true);
+      if (showSpinner || !contest) {
+        setLoading(true);
+      }
       const { data } = await axiosClient.get(`/contest/${id}`);
       setContest(data);
       
@@ -118,11 +122,15 @@ const ContestDetail = () => {
   };
 
   useEffect(() => {
-    fetchContestData();
+    setContest(null);
+    fetchContestData(true);
   }, [id]);
 
   const handleJoin = async () => {
-    if (!user) return alert("Please login first");
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     try {
       setJoining(true);
       await axiosClient.post(`/contest/join/${id}`, { userId: user._id });
@@ -187,6 +195,11 @@ const ContestDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#0B1020] text-slate-300 pt-28 pb-20 font-sans relative overflow-hidden">
+      <LoginRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action="join contests"
+      />
       {/* Background decoration */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 

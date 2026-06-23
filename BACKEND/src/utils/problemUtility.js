@@ -21,13 +21,7 @@ const getLanguageById = (lang) => {
   return id || null;
 };
 
-// ─── Base64 helpers ──────────────────────────────────────────────────────────
 
-/**
- * Encode a string to base64 for Judge0 submission.
- * Judge0 requires base64 when source_code/stdin contain
- * characters it cannot safely parse as raw UTF-8.
- */
 const encode = (str) => Buffer.from(str || '').toString('base64');
 
 /**
@@ -53,10 +47,6 @@ const getHeaders = () => ({
 
 // ─── Submit batch ─────────────────────────────────────────────────────────────
 
-/**
- * Submit a batch of testcases to Judge0.
- * ALL fields are base64-encoded; query param base64_encoded=true is required.
- */
 const submitBatch = async (submissions) => {
   const encoded = submissions.map((s) => ({
     source_code:     encode(s.source_code),
@@ -169,13 +159,7 @@ const submitToken = async (resultTokens, maxAttempts = 20) => {
   throw new Error(`[Judge] Timed out waiting for Judge0 results after ${maxAttempts} attempts`);
 };
 
-// ─── Output normalisation ─────────────────────────────────────────────────────
 
-/**
- * Normalise stdout/expected_output before comparison so trailing
- * newlines, Windows line endings, and extra spaces never cause
- * false Wrong Answer verdicts.
- */
 const normalizeOutput = (raw = '') =>
   (raw || '')
     .replace(/\r\n/g, '\n')

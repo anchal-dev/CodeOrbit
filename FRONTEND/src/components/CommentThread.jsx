@@ -5,7 +5,7 @@ import { ThumbsUp, ThumbsDown, MessageSquare, CheckCircle, ChevronDown, ChevronR
 import MarkdownViewer from './MarkdownViewer';
 import { useSelector } from 'react-redux';
 
-const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVote, depth = 0 }) => {
+const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVote, onLoginRequired, depth = 0 }) => {
   const { user } = useSelector(state => state.auth);
   const [isReplying, setIsReplying]   = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -88,14 +88,26 @@ const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVot
                 {/* Vote controls */}
                 <div className="flex items-center bg-[#0f172a]/80 border border-slate-700/50 rounded-full overflow-hidden text-xs font-bold">
                   <button
-                    onClick={() => onVote(comment._id, 'Comment', 1)}
+                    onClick={() => {
+                      if (!user) {
+                        onLoginRequired?.();
+                        return;
+                      }
+                      onVote(comment._id, 'Comment', 1);
+                    }}
                     className="px-3 py-1.5 hover:bg-slate-700/60 hover:text-emerald-400 text-slate-400 transition-colors flex items-center gap-1"
                   >
                     <ThumbsUp size={13} />
                   </button>
                   <span className="px-2 text-slate-200 border-x border-slate-700/50">{comment.votes}</span>
                   <button
-                    onClick={() => onVote(comment._id, 'Comment', -1)}
+                    onClick={() => {
+                      if (!user) {
+                        onLoginRequired?.();
+                        return;
+                      }
+                      onVote(comment._id, 'Comment', -1);
+                    }}
                     className="px-3 py-1.5 hover:bg-slate-700/60 hover:text-red-400 text-slate-400 transition-colors flex items-center gap-1"
                   >
                     <ThumbsDown size={13} />
@@ -103,7 +115,13 @@ const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVot
                 </div>
 
                 <button
-                  onClick={() => setIsReplying(!isReplying)}
+                  onClick={() => {
+                    if (!user) {
+                      onLoginRequired?.();
+                      return;
+                    }
+                    setIsReplying(!isReplying);
+                  }}
                   className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-blue-400 transition-colors"
                 >
                   <MessageSquare size={13} /> Reply
@@ -111,7 +129,13 @@ const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVot
 
                 {isPostAuthor && !comment.parentComment && (
                   <button
-                    onClick={() => onAccept(comment._id)}
+                    onClick={() => {
+                      if (!user) {
+                        onLoginRequired?.();
+                        return;
+                      }
+                      onAccept(comment._id);
+                    }}
                     className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${
                       comment.isAccepted
                         ? 'text-emerald-400'
@@ -177,6 +201,7 @@ const CommentThread = ({ comment, postId, postAuthorId, onReply, onAccept, onVot
               onReply={onReply}
               onAccept={onAccept}
               onVote={onVote}
+              onLoginRequired={onLoginRequired}
               depth={depth + 1}
             />
           ))}

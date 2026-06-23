@@ -60,7 +60,9 @@ const UserProfile = () => {
   /* ── fetch ── */
   const fetchProfile = async () => {
     try {
-      setLoading(true);
+      if (!profileData) {
+        setLoading(true);
+      }
       const { data } = await axiosClient.get(`/profile/${user._id}`);
       setProfileData(data.user);
       setRecentSubmissions(Array.isArray(data.recentSubmissions) ? data.recentSubmissions : []);
@@ -78,7 +80,7 @@ const UserProfile = () => {
     }
   };
 
-  useEffect(() => { if (user?._id) fetchProfile(); }, [user]);
+  useEffect(() => { if (user?._id) fetchProfile(); }, [user?._id]);
 
   /* ── save ── */
   const handleUpdate = async (e) => {
