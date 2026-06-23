@@ -8,7 +8,7 @@ import {
   Pin, Lock, ArrowLeft, CheckCircle, Tag
 } from 'lucide-react';
 import { io } from 'socket.io-client';
-import axiosClient from '../utils/axiosClient';
+import axiosClient, { BACKEND_URL } from '../utils/axiosClient';
 import MarkdownViewer from '../components/MarkdownViewer';
 import CommentThread from '../components/CommentThread';
 import LoginRequiredModal from '../components/LoginRequiredModal';
@@ -33,7 +33,7 @@ const DiscussionDetail = () => {
     setLoading(true);
     fetchPostDetails();
 
-    const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
+    const socket = io(BACKEND_URL, { withCredentials: true });
 
     socket.on('connect', () => {
       socket.emit('join_room', `post_${id}`);

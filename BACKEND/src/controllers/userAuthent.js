@@ -40,12 +40,13 @@ console.log(req.body);
             _id: user._id
         }
 
-       res.cookie('token', token, {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: false, // important for localhost
-  maxAge: 60 * 60 * 1000
-});
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('token', token, {
+          httpOnly: true,
+          sameSite: isProduction ? "none" : "lax",
+          secure: isProduction,
+          maxAge: 60 * 60 * 1000
+        });
         res.status(201).json({
             user :reply,
             message: "User registered successfully"
@@ -98,12 +99,13 @@ const login = async (req, res) => {
             { expiresIn: 60 * 60 }
         );
 
-       res.cookie('token', token, {
-  httpOnly: true,
-  sameSite: "lax",
-  secure: false, // important for localhost
-  maxAge: 60 * 60 * 1000
-});
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('token', token, {
+          httpOnly: true,
+          sameSite: isProduction ? "none" : "lax",
+          secure: isProduction,
+          maxAge: 60 * 60 * 1000
+        });
         res.status(200).json({
             user :reply,
             message: "User logged in successfully"
@@ -126,7 +128,12 @@ const logout = async (req, res) => {
         await redisClient.set(`blocked_${payload._id}`, "true");
         await redisClient.expire(`blocked_${payload._id}`, 60 * 60);
 
-        res.clearCookie("token", null, {expires: new Date(Date.now())});
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.clearCookie("token", {
+          httpOnly: true,
+          sameSite: isProduction ? "none" : "lax",
+          secure: isProduction
+        });
         res.send("User logged out successfully");
     }
     catch (err) {

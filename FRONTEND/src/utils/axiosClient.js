@@ -1,7 +1,10 @@
 import axios from "axios";
 
+export const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 
+  (["localhost", "127.0.0.1"].includes(window.location.hostname) ? "http://localhost:3000" : "https://codeorbit-backend-uwtg.onrender.com");
+
 const axiosClient = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: BACKEND_URL,
   withCredentials: true,  // sends httpOnly cookies automatically
 });
 

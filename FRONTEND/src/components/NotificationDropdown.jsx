@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
 import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
-import axiosClient from '../utils/axiosClient';
+import axiosClient, { BACKEND_URL } from '../utils/axiosClient';
 
 const NotificationDropdown = () => {
   const { user } = useSelector(state => state.auth);
@@ -32,7 +32,7 @@ const NotificationDropdown = () => {
     if (!userId) return;
     fetchNotifications();
 
-    const socket = io('https://codeorbit-backend-uwtg.onrender.com', { withCredentials: true });
+    const socket = io(BACKEND_URL, { withCredentials: true });
     socket.on('connect', () => socket.emit('join_room', String(userId)));
     socket.on('notification', (n) => setNotifications(prev => [n, ...prev]));
 
