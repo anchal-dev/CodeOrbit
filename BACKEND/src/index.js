@@ -85,8 +85,11 @@ app.use('/api/admin', adminRouter);
 const InitalizeConnection = async ()=>{
     try{
 
-        await Promise.all([main(),redisClient.connect()]);
+        await main();
         console.log("DB Connected");
+
+        // Redis connect is non-blocking (safeRedis handles failures gracefully)
+        redisClient.connect();
         
         server.listen(process.env.PORT, ()=>{
             console.log("Server listening at port number: "+ process.env.PORT);
