@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
-import { registerUser } from '../authSlice';
+import { registerUser, clearError } from '../authSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
@@ -59,8 +59,17 @@ function Signup() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({ resolver: zodResolver(signupSchema) });
+
+  const firstNameValue = watch('firstName');
+  const emailValue = watch('emailId');
+  const passwordValue = watch('password');
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [firstNameValue, emailValue, passwordValue, dispatch]);
 
   useEffect(() => {
     if (isAuthenticated) {

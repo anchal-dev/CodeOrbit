@@ -9,19 +9,24 @@ const Submission = require('../models/submission');
 
 const register = async (req, res) => {
     try {
-    //    validate(req.body);
-
         const { firstName, emailId, password } = req.body;
 
-const hashedPassword = await bcrypt.hash(password, 10);
+        if (!firstName || !emailId || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill in all required fields."
+            });
+        }
 
-const user = await User.create({
-    firstName,
-    emailId,   // ✅ FIXED
-    password: hashedPassword
-});
-////////////////////////////////////////////////
-console.log(req.body);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            firstName,
+            emailId,
+            password: hashedPassword
+        });
+        ////////////////////////////////////////////////
+        console.log(req.body);
 
 
         const token = jwt.sign( 
@@ -48,6 +53,7 @@ console.log(req.body);
           maxAge: 60 * 60 * 1000
         });
         res.status(201).json({
+            success: true,
             user :reply,
             message: "User registered successfully"
         });
@@ -57,11 +63,14 @@ console.log(req.body);
     if (err.code === 11000 || (err.name === 'MongoServerError' && err.code === 11000)) {
       return res.status(409).json({
         success: false,
-        message: 'Email already registered. Please use a different email or log in.',
+        message: 'Account already exists. Please use a different email or log in.',
       });
     }
-    console.error('\uD83D\uDD25 REGISTER ERROR:', err.message);
-    return res.status(400).json({ success: false, message: err.message });
+    console.error('🔥 REGISTER ERROR:', err.message);
+    return res.status(500).json({ 
+        success: false, 
+        message: "Server is currently unavailable. Please try again." 
+    });
 }
 }
 
@@ -69,18 +78,30 @@ const login = async (req, res) => {
     try {
         const { emailId, password } = req.body;
 
-        if (!emailId || !password)
-            throw new Error("Invalid Credentials");
+        if (!emailId || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill in all required fields."
+            });
+        }
 
         const user = await User.findOne({ emailId });
 
-        if (!user)
-            throw new Error("Invalid Credentials");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Account not found."
+            });
+        }
 
         const match = await bcrypt.compare(password, user.password);
 
-        if (!match)
-            throw new Error("Invalid Credentials");
+        if (!match) {
+            return res.status(401).json({
+                success: false,
+                message: "Incorrect password."
+            });
+        }
         
         const reply = {
             firstName: user.firstName,
@@ -107,12 +128,17 @@ const login = async (req, res) => {
           maxAge: 60 * 60 * 1000
         });
         res.status(200).json({
+            success: true,
             user :reply,
             message: "User logged in successfully"
         })
     }
     catch (err) {
-        res.status(400).send("Error: " + err.message);
+        console.error("Login error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Server is currently unavailable. Please try again."
+        });
     }
 };
 
