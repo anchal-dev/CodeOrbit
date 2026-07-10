@@ -266,7 +266,7 @@ const BUG_QUESTIONS = [
     codeSnippet:`int binarySearch(int arr[], int n, int target) {
     int left = 0, right = n;  // Bug: should be n-1
     while (left < right) {
-        int mid = left + right / 2;  // Bug: should be left + (right-left)/2
+        int mid = left + right / 2;  
         if (arr[mid] == target) return mid;
         else if (arr[mid] < target) left = mid + 1;
         else right = mid;
@@ -283,7 +283,7 @@ const BUG_QUESTIONS = [
     Node* curr = head;
     while (curr != NULL) {
         if (curr->data == val) {
-            curr = curr->next;  // Bug: doesn't update prev->next
+            curr = curr->next; 
         }
         curr = curr->next;
     }
@@ -295,7 +295,7 @@ const BUG_QUESTIONS = [
   {
     question:'Find the bug in this factorial function',
     codeSnippet:`int factorial(int n) {
-    if (n == 0) return 0;  // Bug: should return 1
+    if (n == 0) return 0;  
     return n * factorial(n - 1);
 }`,
     options:['Base case returns 0 instead of 1','n should start from 1','Missing negative check','No recursion needed'],
@@ -312,7 +312,7 @@ const BUG_QUESTIONS = [
         self.data.append(x)
     
     def pop(self):
-        return self.data.pop(0)  # Bug: should be pop() or pop(-1)`,
+        return self.data.pop(0)`,
     options:['pop(0) removes from front (queue behavior) not top of stack','append is wrong','data should be a dict','No bug'],
     answer:'pop(0) removes from front (queue behavior) not top of stack',
     explanation:'Stack is LIFO; pop() or pop(-1) removes from the end. pop(0) removes from the front, making it a queue.'
@@ -320,9 +320,9 @@ const BUG_QUESTIONS = [
   {
     question:'Find the bug in this palindrome checker',
     codeSnippet:`bool isPalindrome(string s) {
-    int left = 0, right = s.length();  // Bug
+    int left = 0, right = s.length();  
     while (left < right) {
-        if (s[left] != s[right]) return false;  // Bug: out of bounds
+        if (s[left] != s[right]) return false;  
         left++;
         right--;
     }
@@ -336,7 +336,7 @@ const BUG_QUESTIONS = [
     question:'What bug causes infinite loop here?',
     codeSnippet:`int i = 0;
 while (i != 10) {
-    i += 3;  // Bug: i will skip over 10 (0,3,6,9,12...)
+    i += 3; 
 }`,
     options:['i skips over 10 so condition is never true','i starts at 0 not 1','Should use for loop','No bug'],
     answer:'i skips over 10 so condition is never true',
@@ -346,7 +346,7 @@ while (i != 10) {
     question:'Find the off-by-one error',
     codeSnippet:`int sumArray(int arr[], int n) {
     int sum = 0;
-    for (int i = 0; i <= n; i++) {  // Bug: should be i < n
+    for (int i = 0; i <= n; i++) {  
         sum += arr[i];
     }
     return sum;
@@ -358,7 +358,7 @@ while (i != 10) {
   {
     question:'Find the bug in this string reversal',
     codeSnippet:`void reverseString(char s[], int n) {
-    for (int i = 0; i < n; i++) {  // Bug: should be n/2
+    for (int i = 0; i < n; i++) {  
         char temp = s[i];
         s[i] = s[n-1-i];
         s[n-1-i] = temp;
@@ -373,7 +373,7 @@ while (i != 10) {
     codeSnippet:`def remove_duplicates(lst):
     for item in lst:
         if lst.count(item) > 1:
-            lst.remove(item)  # Bug: mutating list while iterating
+            lst.remove(item) 
     return lst`,
     options:['Modifying list while iterating causes skipped elements','count() is wrong','remove() not available','No bug'],
     answer:'Modifying list while iterating causes skipped elements',
@@ -385,7 +385,7 @@ while (i != 10) {
     int left = 0, right = height.size() - 1;
     int maxW = 0;
     while (left < right) {
-        int area = min(height[left], height[right]);  // Bug: missing * (right - left)
+        int area = min(height[left], height[right]);  
         maxW = max(maxW, area);
         if (height[left] < height[right]) left++;
         else right--;
@@ -405,7 +405,7 @@ while (i != 10) {
         int node = q.front();
         q.pop();
         for (int neighbor : adj[node]) {
-            q.push(neighbor);  // Bug: no visited check → infinite loop on cycles
+            q.push(neighbor);  
         }
     }
 }`,
@@ -417,7 +417,7 @@ while (i != 10) {
     question:'Spot the bug in this merge sort',
     codeSnippet:`void merge(int arr[], int l, int m, int r) {
     int n1 = m - l + 1;
-    int n2 = r - m;     // Bug: should be r - m
+    int n2 = r - m;     
     // ... copies to temp arrays L, R
     int i=0, j=0, k=l;
     while(i<n1 && j<n2) {
@@ -434,7 +434,7 @@ while (i != 10) {
     question:'Find the Python recursion bug',
     codeSnippet:`def power(base, exp):
     if exp == 0: return 1
-    return base * power(base, exp)  # Bug: exp not decremented`,
+    return base * power(base, exp)  `,
     options:['exp not decremented → infinite recursion','Base case wrong','base should be int','No bug'],
     answer:'exp not decremented → infinite recursion',
     explanation:'power(base, exp) calls itself with the same exp forever. Should be power(base, exp-1).'
@@ -445,7 +445,7 @@ while (i != 10) {
     map<char, int> freq;
     for (char c : s) freq[c]++;
     for (int i = 0; i < s.length(); i++) {
-        if (freq[s[i]] == 0) return i;  // Bug: should check == 1
+        if (freq[s[i]] == 0) return i; 
     }
     return -1;
 }`,
@@ -460,7 +460,7 @@ while (i != 10) {
     dp[0] = 1;
     dp[1] = 1;
     for (int i = 2; i <= n; i++) {
-        dp[i] = dp[i-1] + dp[i-2];  // Bug: out of bounds when n is size
+        dp[i] = dp[i-1] + dp[i-2];  
     }
     return dp[n];
 }`,
